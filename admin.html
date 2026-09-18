@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة المشرف - آفاق للقراءة والكتابة</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon-180.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">آفاق للقراءة والكتابة<small>لوحة المشرف</small></div>
+      <nav class="sidebar-nav">
+        <a href="admin.html" class="active">المستخدمون</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="who" id="whoAmI">...</div>
+        <button class="btn-ghost" style="width:100%; color:#fff; border-color:rgba(255,255,255,.3);" onclick="logout()">تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <h1>إدارة المستخدمين</h1>
+        <p>أنشئ حسابات الطلاب والمعلمين، وفعّلها بعد استلام الحوالة عبر واتساب.</p>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div class="tabs" style="margin-bottom:0; border-bottom:none;">
+          <button class="tab-btn active" data-role="student" onclick="switchTab('student')">الطلاب</button>
+          <button class="tab-btn" data-role="teacher" onclick="switchTab('teacher')">المعلمون</button>
+        </div>
+        <button class="btn-primary" onclick="openCreateModal()">+ إنشاء حساب جديد</button>
+      </div>
+
+      <div id="listMsg"></div>
+
+      <div class="register" id="usersRegister">
+        <div class="register-row head">
+          <div>الاسم</div>
+          <div>البريد الإلكتروني</div>
+          <div>الحالة</div>
+          <div>تاريخ الإنشاء</div>
+          <div>إجراء</div>
+        </div>
+        <div id="usersList">
+          <div class="empty-state">جارٍ التحميل...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- نافذة إنشاء حساب -->
+  <div class="modal-overlay" id="createModalOverlay" hidden>
+    <div class="modal">
+      <h2 id="createModalTitle">إنشاء حساب طالب</h2>
+      <div id="createMsg"></div>
+      <form id="createUserForm">
+        <div class="field">
+          <label for="newFullName">الاسم الكامل</label>
+          <input type="text" id="newFullName" required>
+        </div>
+        <div class="field">
+          <label for="newEmail">البريد الإلكتروني</label>
+          <input type="email" id="newEmail" required>
+        </div>
+        <div class="field">
+          <label for="newPassword">كلمة مرور مؤقتة</label>
+          <input type="text" id="newPassword" required minlength="6">
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary" id="createSubmitBtn">إنشاء الحساب</button>
+          <button type="button" class="btn-ghost" onclick="closeCreateModal()">إلغاء</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/supabaseClient.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/admin.js"></script>
+
+  <footer style="text-align:center; padding: 24px 16px; font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 20px;">
+    🛠️ تطوير:
+    <a href="mailto:amjad8835m@gmail.com" style="color:var(--color-primary-dark); font-weight:700;">أمجد</a>
+    ·
+    <a href="https://wa.me/2490112159495?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%B9%D8%AC%D8%A8%D9%86%D9%8A%20%D9%86%D8%B8%D8%A7%D9%85%20%D8%A2%D9%81%D8%A7%D9%82%20%D9%88%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%B4%D8%A7%D8%A8%D9%87" style="color:var(--color-primary-dark); font-weight:700;" target="_blank">تواصل معي لتطوير مشروع مشابه 💬</a>
+  </footer>
+</body>
+</html>

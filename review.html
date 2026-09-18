@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مراجعة الحلول - لوحة المعلم</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon-180.png">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .review-media { max-width: 100%; border-radius: var(--radius-md); border: 1px solid var(--line); margin-top: 8px; }
+    .record-btn {
+      width: 72px; height: 72px; border-radius: 50%; font-size: 1.75rem;
+      background: var(--color-coral); color: #fff; box-shadow: var(--shadow-md);
+      min-height: unset; padding: 0;
+    }
+    .record-btn.recording { animation: pulse 1s infinite; background: #d94848; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(217,72,72,0.5); } 50% { box-shadow: 0 0 0 12px rgba(217,72,72,0); } }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">آفاق للقراءة والكتابة<small>لوحة المعلم</small></div>
+      <nav class="sidebar-nav">
+        <a href="teacher.html">الدروس</a>
+        <a href="review.html" class="active">مراجعة الحلول</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="who" id="whoAmI">...</div>
+        <button class="btn-ghost" style="width:100%; color:#fff; border-color:rgba(255,255,255,.3);" onclick="logout()">تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <h1>مراجعة الحلول</h1>
+        <p>استعرض حلول الطلاب، صحّحها، وسجّل ملاحظة صوتية لكل طالب.</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-filter="pending" onclick="switchFilter('pending')">بانتظار المراجعة</button>
+        <button class="tab-btn" data-filter="correct" onclick="switchFilter('correct')">صحيحة</button>
+        <button class="tab-btn" data-filter="incorrect" onclick="switchFilter('incorrect')">تحتاج مراجعة</button>
+        <button class="tab-btn" data-filter="all" onclick="switchFilter('all')">الكل</button>
+      </div>
+
+      <div id="listMsg"></div>
+
+      <div class="register" id="submissionsRegister">
+        <div class="register-row head" style="grid-template-columns: 1fr 1.2fr 0.7fr 0.9fr 0.7fr;">
+          <div>الطالب</div>
+          <div>الدرس</div>
+          <div>الحالة</div>
+          <div>تاريخ الرفع</div>
+          <div>إجراء</div>
+        </div>
+        <div id="submissionsList">
+          <div class="empty-state">جارٍ التحميل...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- نافذة المراجعة -->
+  <div class="modal-overlay" id="reviewModalOverlay" hidden>
+    <div class="modal" style="max-width: 520px;">
+      <h2 id="reviewModalTitle">مراجعة الحل</h2>
+      <div id="reviewMsg"></div>
+
+      <div class="stack" style="gap: var(--space-4);">
+        <div>
+          <label>صورة حل الطالب</label>
+          <img id="reviewImage" class="review-media" alt="صورة الحل">
+        </div>
+        <div>
+          <label>تسجيل الطالب الصوتي</label>
+          <audio id="reviewAudio" controls style="width:100%;"></audio>
+        </div>
+
+        <div class="row" style="gap:10px;">
+          <button type="button" class="btn-primary" id="markCorrectBtn" style="flex:1; background: var(--color-mint);">✅ صحيح</button>
+          <button type="button" class="btn-primary" id="markIncorrectBtn" style="flex:1; background: var(--color-coral);">❌ خطأ</button>
+        </div>
+
+        <div class="recorder-box" style="background: var(--color-surface); border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); text-align:center;">
+          <label>سجّل ملاحظة صوتية للطالب 🎙️</label>
+          <button type="button" class="btn-primary record-btn" id="teacherRecordBtn">🎙️</button>
+          <div id="teacherRecordTimer" style="font-family: var(--font-heading); margin-top:8px;">00:00</div>
+          <div id="teacherAudioPreviewWrap" style="margin-top: var(--space-3); display:none;">
+            <audio id="teacherAudioPreview" controls style="width:100%;"></audio>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-primary" id="saveReviewBtn">حفظ التقييم</button>
+          <button type="button" class="btn-ghost" onclick="closeReviewModal()">إغلاق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/supabaseClient.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/teacher-review.js"></script>
+
+  <footer style="text-align:center; padding: 24px 16px; font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 20px;">
+    🛠️ تطوير:
+    <a href="mailto:amjad8835m@gmail.com" style="color:var(--color-primary-dark); font-weight:700;">أمجد</a>
+    ·
+    <a href="https://wa.me/2490112159495?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%B9%D8%AC%D8%A8%D9%86%D9%8A%20%D9%86%D8%B8%D8%A7%D9%85%20%D8%A2%D9%81%D8%A7%D9%82%20%D9%88%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%B4%D8%A7%D8%A8%D9%87" style="color:var(--color-primary-dark); font-weight:700;" target="_blank">تواصل معي لتطوير مشروع مشابه 💬</a>
+  </footer>
+</body>
+</html>

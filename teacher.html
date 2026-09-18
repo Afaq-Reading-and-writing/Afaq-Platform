@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الدروس - لوحة المعلم</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon-180.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">آفاق للقراءة والكتابة<small>لوحة المعلم</small></div>
+      <nav class="sidebar-nav">
+        <a href="teacher.html" class="active">الدروس</a>
+        <a href="review.html">مراجعة الحلول</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="who" id="whoAmI">...</div>
+        <button class="btn-ghost" style="width:100%; color:#fff; border-color:rgba(255,255,255,.3);" onclick="logout()">تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <h1>إدارة الدروس</h1>
+        <p>أضف رابط فيديو الدرس من Bunny.net، وصورة الواجب، وفيديو شرح الحل.</p>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <button class="btn-primary" onclick="openLessonModal()">+ إضافة درس جديد</button>
+      </div>
+
+      <div id="listMsg"></div>
+
+      <div class="register" id="lessonsRegister">
+        <div class="register-row head" style="grid-template-columns: 1.4fr 0.7fr 0.9fr 0.9fr;">
+          <div>عنوان الدرس</div>
+          <div>صورة الواجب</div>
+          <div>تاريخ الإضافة</div>
+          <div>إجراء</div>
+        </div>
+        <div id="lessonsList">
+          <div class="empty-state">جارٍ التحميل...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- نافذة إضافة/تعديل درس -->
+  <div class="modal-overlay" id="lessonModalOverlay" hidden>
+    <div class="modal" style="max-width: 480px;">
+      <h2 id="lessonModalTitle">إضافة درس جديد</h2>
+      <div id="lessonMsg"></div>
+      <form id="lessonForm">
+        <input type="hidden" id="lessonId">
+        <div class="field">
+          <label for="lessonTitle">عنوان الدرس</label>
+          <input type="text" id="lessonTitle" required>
+        </div>
+        <div class="field">
+          <label for="lessonVideoUrl">رابط فيديو الدرس (Bunny.net)</label>
+          <input type="url" id="lessonVideoUrl" required placeholder="https://... أو ارفع فيديو مباشرة أدناه">
+          <div class="row" style="margin-top:8px; gap:8px; align-items:center;">
+            <input type="file" id="lessonVideoFile" accept="video/*" style="display:none;">
+            <button type="button" class="btn-ghost btn--sm" onclick="document.getElementById('lessonVideoFile').click()">📤 رفع من الجهاز</button>
+            <span class="meta" id="lessonVideoUploadStatus"></span>
+          </div>
+          <div class="progress" id="lessonVideoProgressWrap" style="display:none; margin-top:8px;">
+            <div class="progress__bar" id="lessonVideoProgressBar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>تسجيل صوتي يشرح الحل (اختياري)</label>
+          <div class="recorder-box">
+            <button type="button" class="btn-primary record-btn" id="lessonAudioRecordBtn">🎙️</button>
+            <div class="record-timer" id="lessonAudioTimer">00:00</div>
+            <div id="lessonAudioPreviewWrap" style="margin-top: var(--space-3); display:none;">
+              <audio id="lessonAudioPreview" controls style="width:100%;"></audio>
+              <button type="button" class="btn-ghost btn--sm" id="lessonAudioRerecordBtn" style="margin-top:8px;">إعادة التسجيل</button>
+            </div>
+            <div class="meta" id="currentAudioNote" style="margin-top:8px;"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="lessonImageFile">صورة الواجب <span id="currentImageNote" style="color:var(--ink-soft); font-weight:400;"></span></label>
+          <input type="file" id="lessonImageFile" accept="image/*">
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary" id="lessonSubmitBtn">حفظ الدرس</button>
+          <button type="button" class="btn-ghost" onclick="closeLessonModal()">إلغاء</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tus-js-client@3/dist/tus.min.js"></script>
+  <script src="assets/supabaseClient.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/teacher-lessons.js"></script>
+
+  <footer style="text-align:center; padding: 24px 16px; font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 20px;">
+    🛠️ تطوير:
+    <a href="mailto:amjad8835m@gmail.com" style="color:var(--color-primary-dark); font-weight:700;">أمجد</a>
+    ·
+    <a href="https://wa.me/2490112159495?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%B9%D8%AC%D8%A8%D9%86%D9%8A%20%D9%86%D8%B8%D8%A7%D9%85%20%D8%A2%D9%81%D8%A7%D9%82%20%D9%88%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%B4%D8%A7%D8%A8%D9%87" style="color:var(--color-primary-dark); font-weight:700;" target="_blank">تواصل معي لتطوير مشروع مشابه 💬</a>
+  </footer>
+</body>
+</html>
