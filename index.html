@@ -28,7 +28,25 @@
           <input type="password" id="password" required autocomplete="current-password">
         </div>
         <button type="submit" class="btn-primary" id="loginBtn">تسجيل الدخول</button>
+        <div style="text-align:left; margin-top: 10px;">
+          <a href="#" id="forgotPasswordLink" style="font-size: 13px; color: var(--color-primary-dark);">نسيت كلمة المرور؟</a>
+        </div>
       </form>
+
+      <div id="forgotPasswordPanel" style="display:none;">
+        <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 16px;">
+          أدخل بريدك الإلكتروني وسنرسل لك رابطاً لتعيين كلمة مرور جديدة.
+        </p>
+        <div class="field">
+          <label for="forgotEmail">البريد الإلكتروني</label>
+          <input type="email" id="forgotEmail" required>
+        </div>
+        <div id="forgotMsg"></div>
+        <button type="button" class="btn-primary btn--block" id="sendResetBtn">إرسال رابط الاستعادة</button>
+        <div style="text-align:center; margin-top: 14px;">
+          <a href="#" id="backToLoginLink" style="font-size: 13px; color: var(--ink-soft);">→ رجوع لتسجيل الدخول</a>
+        </div>
+      </div>
 
       <div style="text-align:center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line);">
         <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 10px;">ليس لديك حساب بعد؟</p>

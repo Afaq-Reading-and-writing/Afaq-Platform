@@ -60,6 +60,9 @@ loginForm?.addEventListener("submit", async (e) => {
     return;
   }
 
+  // إنهاء أي جلسات أخرى مفتوحة لنفس الحساب على أجهزة أخرى (منع الاستخدام المشترك المتزامن)
+  await supabaseClient.auth.signOut({ scope: "others" });
+
   await redirectByRole();
   loginBtn.disabled = false;
   loginBtn.textContent = "تسجيل الدخول";
@@ -111,3 +114,45 @@ async function logout() {
   await supabaseClient.auth.signOut();
   window.location.href = "index.html";
 }
+
+// ============================================
+// نسيت كلمة المرور
+// ============================================
+document.getElementById("forgotPasswordLink")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  loginForm.style.display = "none";
+  document.getElementById("forgotPasswordPanel").style.display = "block";
+});
+
+document.getElementById("backToLoginLink")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  loginForm.style.display = "block";
+  document.getElementById("forgotPasswordPanel").style.display = "none";
+});
+
+document.getElementById("sendResetBtn")?.addEventListener("click", async () => {
+  const btn = document.getElementById("sendResetBtn");
+  const msgEl = document.getElementById("forgotMsg");
+  const email = document.getElementById("forgotEmail").value.trim();
+
+  if (!email) {
+    msgEl.innerHTML = `<div class="msg msg-error">أدخل بريدك الإلكتروني.</div>`;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "جارٍ الإرسال...";
+
+  const redirectUrl = new URL("reset-password.html", window.location.href).href;
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+
+  if (error) {
+    console.error("تفاصيل خطأ إرسال رابط الاستعادة:", error);
+    msgEl.innerHTML = `<div class="msg msg-error">تعذّر إرسال الرابط. تحقق من البريد وحاول مرة أخرى.</div>`;
+  } else {
+    msgEl.innerHTML = `<div class="msg msg-success">تم إرسال رابط استعادة كلمة المرور إلى بريدك. تحقق من صندوق الوارد (والبريد العشوائي).</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "إرسال رابط الاستعادة";
+});

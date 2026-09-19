@@ -164,6 +164,7 @@ button:active { transform: translateY(1px) scale(0.98); }
 .btn--coral { background-color: var(--color-coral); color: #fff; }
 .btn--lg { min-height: 68px; font-size: var(--text-xl); padding: 0 var(--space-8); }
 .btn--sm { min-height: 44px; font-size: var(--text-sm); padding: 0 var(--space-5); }
+.btn--block { display: flex; width: 100%; }
 
 input, select {
   font-family: var(--font-body);
@@ -179,6 +180,12 @@ input, select {
 input:focus, select:focus {
   outline: none;
   border-color: var(--color-primary);
+}
+
+/* إخفاء أيقونة "إظهار كلمة المرور" المدمجة في متصفح Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
 }
 
 label {
