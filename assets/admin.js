@@ -90,7 +90,6 @@ document.getElementById("createUserForm").addEventListener("submit", async (e) =
 
   const full_name = document.getElementById("newFullName").value.trim();
   const email = document.getElementById("newEmail").value.trim();
-  const password = document.getElementById("newPassword").value;
 
   const { data: { session } } = await supabaseClient.auth.getSession();
 
@@ -101,7 +100,7 @@ document.getElementById("createUserForm").addEventListener("submit", async (e) =
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ email, password, full_name, role: currentTab }),
+      body: JSON.stringify({ email, full_name, role: currentTab }),
     });
     const result = await res.json();
 

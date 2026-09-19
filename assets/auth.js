@@ -68,6 +68,14 @@ loginForm?.addEventListener("submit", async (e) => {
 // إن كان المستخدم مسجّلاً دخوله بالفعل عند فتح صفحة الدخول، وجّهه مباشرة
 (async () => {
   if (document.getElementById("loginForm")) {
+    // حماية: إن كانت الجلسة قادمة من رابط دعوة أو استرجاع كلمة مرور (لم تُستكمل بعد)
+    // نوجّه المستخدم لصفحة تعيين كلمة المرور بدل تسجيل دخوله تلقائياً بلا كلمة مرور
+    const hash = window.location.hash || "";
+    if (hash.includes("type=invite") || hash.includes("type=recovery")) {
+      window.location.href = "reset-password.html" + hash;
+      return;
+    }
+
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) await redirectByRole();
   }
