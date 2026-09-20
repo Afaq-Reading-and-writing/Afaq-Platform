@@ -18,6 +18,35 @@ function fmtTimer(s) {
   return `${m}:${sec}`;
 }
 
+// تحويل أي رابط يوتيوب عادي (watch?v=... أو youtu.be/... أو shorts/...) لصيغة embed القابلة للعرض داخل إطار
+// روابط Bunny أو أي منصة أخرى تُترك كما هي دون تغيير
+function normalizeVideoUrl(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace("www.", "").replace("m.", "");
+
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1);
+      return id ? `https://www.youtube.com/embed/${id}` : url;
+    }
+
+    if (host === "youtube.com") {
+      if (u.pathname === "/watch") {
+        const id = u.searchParams.get("v");
+        return id ? `https://www.youtube.com/embed/${id}` : url;
+      }
+      if (u.pathname.startsWith("/shorts/")) {
+        const id = u.pathname.split("/")[2];
+        return id ? `https://www.youtube.com/embed/${id}` : url;
+      }
+    }
+
+    return url; // أي رابط آخر (Bunny، embed جاهز، إلخ) يبقى كما هو
+  } catch {
+    return url;
+  }
+}
+
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" });
 }
@@ -193,7 +222,7 @@ document.getElementById("lessonForm").addEventListener("submit", async (e) => {
 
   const lessonId = document.getElementById("lessonId").value || null;
   const title = document.getElementById("lessonTitle").value.trim();
-  const video_url = document.getElementById("lessonVideoUrl").value.trim();
+  const video_url = normalizeVideoUrl(document.getElementById("lessonVideoUrl").value.trim());
   const file = document.getElementById("lessonImageFile").files[0];
 
   try {
@@ -281,7 +310,8 @@ async function uploadVideoToBunny(file, cfg) {
 
     const upload = new tus.Upload(file, {
       endpoint: "https://video.bunnycdn.com/tusupload",
-      retryDelays: [0, 3000, 5000, 10000, 20000],
+      retryDelays: [0, 3000, 5000, 10000, 20000, 30000, 60000, 60000, 60000],
+      chunkSize: 5 * 1024 * 1024, // أجزاء 5 ميغابايت - يقلّل حجم البيانات المفقودة عند أي انقطاع اتصال
       headers: {
         AuthorizationSignature: signature,
         AuthorizationExpire: String(expirationTime),
