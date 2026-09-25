@@ -72,7 +72,7 @@ serve(async (req) => {
 
     // 3) توليد توقيع الرفع المؤقت (TUS Authorization Signature)
     // الصيغة الرسمية من Bunny: SHA256( libraryId + apiKey + expirationTime + videoId )
-    const expirationTime = Math.floor(Date.now() / 1000) + 3600; // صالح لساعة واحدة
+    const expirationTime = Math.floor(Date.now() / 1000) + 43200; // صالح لـ 12 ساعة (يدعم الفيديوهات الطويلة والإنترنت البطيء)
     const signatureInput = `${libraryId}${apiKey}${expirationTime}${videoId}`;
 
     const encoder = new TextEncoder();

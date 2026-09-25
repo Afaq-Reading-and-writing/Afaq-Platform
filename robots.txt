@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /about.html
+Allow: /privacy.html
+Allow: /terms.html
+
+Disallow: /admin.html
+Disallow: /teacher.html
+Disallow: /review.html
+Disallow: /student.html
+Disallow: /lesson.html
+Disallow: /reset-password.html
+
+Sitemap: https://afaq-reading-and-writing.github.io/Afaq-Platform/sitemap.xml
