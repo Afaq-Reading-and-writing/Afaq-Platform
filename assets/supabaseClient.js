@@ -13,5 +13,8 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 // رابط الـ Edge Function الخاصة بإنشاء المستخدمين
 const CREATE_USER_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/create-user`;
 
+// رابط الـ Edge Function الخاصة بحذف حساب مستخدم بالكامل
+const DELETE_USER_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/delete-user`;
+
 // رابط الـ Edge Function الخاصة بإنشاء فيديو في Bunny Stream وتوليد توقيع الرفع
 const CREATE_BUNNY_VIDEO_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/create-bunny-video`;

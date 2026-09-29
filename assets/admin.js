@@ -4,6 +4,8 @@
 
 let currentTab = "student";
 let adminProfile = null;
+let usersCache = [];
+let searchQuery = "";
 
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" });
@@ -13,6 +15,46 @@ function statusPill(isActive) {
   return isActive
     ? `<span class="pill pill-sage">مُفعّل</span>`
     : `<span class="pill pill-amber">بانتظار التفعيل</span>`;
+}
+
+async function loadCounts() {
+  const [{ count: studentsCount }, { count: teachersCount }] = await Promise.all([
+    supabaseClient.from("users").select("id", { count: "exact", head: true }).eq("role", "student"),
+    supabaseClient.from("users").select("id", { count: "exact", head: true }).eq("role", "teacher"),
+  ]);
+  document.getElementById("studentsCount").textContent = studentsCount ?? "—";
+  document.getElementById("teachersCount").textContent = teachersCount ?? "—";
+}
+
+function renderUsers() {
+  const listEl = document.getElementById("usersList");
+  const q = searchQuery.trim().toLowerCase();
+
+  const filtered = q
+    ? usersCache.filter(u => u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+    : usersCache;
+
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty-state">${q ? "لا نتائج مطابقة لبحثك." : `لا يوجد ${currentTab === "student" ? "طلاب" : "معلمون"} حتى الآن. أنشئ أول حساب من الزر أعلاه.`}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(u => `
+    <div class="register-row">
+      <div class="name">${u.full_name}</div>
+      <div class="meta">${u.email}</div>
+      <div>${statusPill(u.is_active)}</div>
+      <div class="meta">${fmtDate(u.created_at)}</div>
+      <div class="row-actions">
+        <button class="btn-ghost" onclick="toggleActive('${u.id}', ${u.is_active})">
+          ${u.is_active ? "تعطيل" : "تفعيل"}
+        </button>
+        <button class="btn-ghost" onclick="deleteUser('${u.id}', '${u.full_name.replace(/'/g, "")}')" style="color: var(--brick);">
+          حذف
+        </button>
+      </div>
+    </div>
+  `).join("");
 }
 
 async function loadUsers() {
@@ -30,24 +72,42 @@ async function loadUsers() {
     return;
   }
 
-  if (!data.length) {
-    listEl.innerHTML = `<div class="empty-state">لا يوجد ${currentTab === "student" ? "طلاب" : "معلمون"} حتى الآن. أنشئ أول حساب من الزر أعلاه.</div>`;
-    return;
-  }
+  usersCache = data;
+  renderUsers();
+}
 
-  listEl.innerHTML = data.map(u => `
-    <div class="register-row">
-      <div class="name">${u.full_name}</div>
-      <div class="meta">${u.email}</div>
-      <div>${statusPill(u.is_active)}</div>
-      <div class="meta">${fmtDate(u.created_at)}</div>
-      <div class="row-actions">
-        <button class="btn-ghost" onclick="toggleActive('${u.id}', ${u.is_active})">
-          ${u.is_active ? "تعطيل" : "تفعيل"}
-        </button>
-      </div>
-    </div>
-  `).join("");
+document.getElementById("userSearchInput").addEventListener("input", (e) => {
+  searchQuery = e.target.value;
+  renderUsers();
+});
+
+async function deleteUser(userId, userName) {
+  if (!confirm(`هل أنت متأكد من حذف حساب "${userName}" نهائياً؟ لا يمكن التراجع عن هذا الإجراء، وستُحذف كل بياناته المرتبطة (دروس/حلول إن وُجدت).`)) return;
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  try {
+    const res = await fetch(DELETE_USER_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const result = await res.json();
+
+    if (!res.ok) {
+      document.getElementById("listMsg").innerHTML = `<div class="msg msg-error">${result.error || "تعذّر الحذف"}</div>`;
+      return;
+    }
+
+    document.getElementById("listMsg").innerHTML = `<div class="msg msg-success">تم حذف الحساب بنجاح.</div>`;
+    loadUsers();
+    loadCounts();
+  } catch (err) {
+    document.getElementById("listMsg").innerHTML = `<div class="msg msg-error">تعذّر الاتصال بالخادم: ${err.message}</div>`;
+  }
 }
 
 async function toggleActive(userId, currentlyActive) {
@@ -65,6 +125,8 @@ async function toggleActive(userId, currentlyActive) {
 
 function switchTab(role) {
   currentTab = role;
+  searchQuery = "";
+  document.getElementById("userSearchInput").value = "";
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.role === role));
   loadUsers();
 }
@@ -113,6 +175,7 @@ document.getElementById("createUserForm").addEventListener("submit", async (e) =
 
     closeCreateModal();
     document.getElementById("listMsg").innerHTML = `<div class="msg msg-success">تم إنشاء الحساب بنجاح. الحساب بانتظار التفعيل.</div>`;
+    loadCounts();
     loadUsers();
   } catch (err) {
     document.getElementById("createMsg").innerHTML = `<div class="msg msg-error">تعذّر الاتصال بالخادم: ${err.message}</div>`;
@@ -128,5 +191,6 @@ document.getElementById("createUserForm").addEventListener("submit", async (e) =
   if (!adminProfile) return;
 
   document.getElementById("whoAmI").textContent = `مرحباً، ${adminProfile.full_name}`;
+  loadCounts();
   loadUsers();
 })();
