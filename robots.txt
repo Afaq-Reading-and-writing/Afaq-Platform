@@ -6,6 +6,7 @@ Allow: /privacy.html
 Allow: /terms.html
 
 Disallow: /admin.html
+Disallow: /admin-lessons.html
 Disallow: /teacher.html
 Disallow: /review.html
 Disallow: /student.html

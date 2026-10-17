@@ -42,7 +42,7 @@ async function loadSubmissions() {
 
   let query = supabaseClient
     .from("submissions")
-    .select("id, status, submitted_at, solution_image_url, solution_audio_url, teacher_audio_url, lesson:lessons(title), student:users!submissions_student_id_fkey(full_name)")
+    .select("id, status, submitted_at, solution_image_url, solution_audio_url, teacher_audio_url, lesson:lessons(title, homework_image_url), student:users!submissions_student_id_fkey(full_name)")
     .order("submitted_at", { ascending: false });
 
   if (currentFilter !== "all") query = query.eq("status", currentFilter);
@@ -99,12 +99,34 @@ async function openReviewModal(submissionId) {
 
   document.getElementById("reviewModalOverlay").hidden = false;
 
-  const [imgUrl, audioUrl] = await Promise.all([
+  // تفريغ الصور السابقة حتى لا تظهر صورة طالب/درس آخر أثناء التحميل
+  const homeworkImgEl = document.getElementById("reviewHomeworkImage");
+  const homeworkEmptyEl = document.getElementById("reviewHomeworkEmpty");
+  document.getElementById("reviewImage").removeAttribute("src");
+  document.getElementById("reviewAudio").removeAttribute("src");
+  homeworkImgEl.removeAttribute("src");
+  homeworkImgEl.style.display = "none";
+  homeworkEmptyEl.style.display = "none";
+  document.getElementById("reviewLessonTitle").textContent = activeSubmission.lesson?.title || "";
+
+  const submissionAtOpen = activeSubmission.id;
+  const [imgUrl, audioUrl, homeworkUrl] = await Promise.all([
     getSignedUrl("submission-images", activeSubmission.solution_image_url),
     getSignedUrl("submission-audio", activeSubmission.solution_audio_url),
+    getSignedUrl("homework-images", activeSubmission.lesson?.homework_image_url),
   ]);
+
+  // إذا أغلق المعلم النافذة أو فتح حلاً آخر أثناء التحميل نتجاهل النتيجة
+  if (!activeSubmission || activeSubmission.id !== submissionAtOpen) return;
+
   document.getElementById("reviewImage").src = imgUrl || "";
   document.getElementById("reviewAudio").src = audioUrl || "";
+  if (homeworkUrl) {
+    homeworkImgEl.src = homeworkUrl;
+    homeworkImgEl.style.display = "block";
+  } else {
+    homeworkEmptyEl.style.display = "block";
+  }
 }
 
 function closeReviewModal() {
