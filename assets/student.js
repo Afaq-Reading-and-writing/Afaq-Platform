@@ -8,7 +8,7 @@ const STATUS_META = {
   not_started: { label: "لم تبدأ بعد", badgeClass: "badge", cta: "ابدأ الدرس", emoji: "📘" },
   pending: { label: "بانتظار التصحيح", badgeClass: "badge badge--accent", cta: "عرض الدرس", emoji: "⏳" },
   correct: { label: "أحسنت! ✅", badgeClass: "badge badge--mint", cta: "مشاهدة مرة أخرى", emoji: "🌟" },
-  incorrect: { label: "حاول التركيز أكثر", badgeClass: "badge badge--coral", cta: "حاول مرة أخرى", emoji: "💪" },
+  incorrect: { label: "حاول التركيز أكثر", badgeClass: "badge badge--coral", cta: "إعادة", emoji: "💪" },
 };
 
 async function loadLessons() {
