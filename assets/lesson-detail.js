@@ -92,7 +92,7 @@ async function renderLesson() {
           ` : `<p style="margin-top: var(--space-3); color: var(--ink-soft);">لم يضف المعلم ملاحظات صوتية بعد.</p>`}
           ${existingSubmission.status === "incorrect" ? `
             <div style="margin-top: var(--space-4);">
-              <button type="button" class="btn-primary btn--lg" id="retryBtn">حاول مرة أخرى 🔁</button>
+              <button type="button" class="btn-primary btn--lg" id="retryBtn">إعادة 🔁</button>
             </div>
           ` : ""}
         </div></div>
