@@ -42,7 +42,7 @@ async function loadSubmissions() {
 
   let query = supabaseClient
     .from("submissions")
-    .select("id, status, submitted_at, solution_image_url, solution_audio_url, teacher_audio_url, lesson:lessons(title, homework_image_url), student:users!submissions_student_id_fkey(full_name)")
+    .select("id, status, submitted_at, solution_image_url, solution_image_url_2, solution_audio_url, teacher_audio_url, lesson:lessons(title, homework_image_url), student:users!submissions_student_id_fkey(full_name)")
     .order("submitted_at", { ascending: false });
 
   if (currentFilter !== "all") query = query.eq("status", currentFilter);
@@ -103,6 +103,9 @@ async function openReviewModal(submissionId) {
   const homeworkImgEl = document.getElementById("reviewHomeworkImage");
   const homeworkEmptyEl = document.getElementById("reviewHomeworkEmpty");
   document.getElementById("reviewImage").removeAttribute("src");
+  const img2El = document.getElementById("reviewImage2");
+  img2El.removeAttribute("src");
+  img2El.style.display = "none";
   document.getElementById("reviewAudio").removeAttribute("src");
   homeworkImgEl.removeAttribute("src");
   homeworkImgEl.style.display = "none";
@@ -110,8 +113,9 @@ async function openReviewModal(submissionId) {
   document.getElementById("reviewLessonTitle").textContent = activeSubmission.lesson?.title || "";
 
   const submissionAtOpen = activeSubmission.id;
-  const [imgUrl, audioUrl, homeworkUrl] = await Promise.all([
+  const [imgUrl, imgUrl2, audioUrl, homeworkUrl] = await Promise.all([
     getSignedUrl("submission-images", activeSubmission.solution_image_url),
+    getSignedUrl("submission-images", activeSubmission.solution_image_url_2),
     getSignedUrl("submission-audio", activeSubmission.solution_audio_url),
     getSignedUrl("homework-images", activeSubmission.lesson?.homework_image_url),
   ]);
@@ -120,6 +124,10 @@ async function openReviewModal(submissionId) {
   if (!activeSubmission || activeSubmission.id !== submissionAtOpen) return;
 
   document.getElementById("reviewImage").src = imgUrl || "";
+  if (imgUrl2) {
+    img2El.src = imgUrl2;
+    img2El.style.display = "block";
+  }
   document.getElementById("reviewAudio").src = audioUrl || "";
   if (homeworkUrl) {
     homeworkImgEl.src = homeworkUrl;
