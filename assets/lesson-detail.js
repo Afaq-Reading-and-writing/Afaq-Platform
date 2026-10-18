@@ -12,6 +12,8 @@ let recordedBlob = null;
 let recordTimerInterval = null;
 let recordSeconds = 0;
 let selectedImageFile = null;
+let selectedImageFile2 = null; // الصورة الثانية (اختيارية - حد أقصى صورتان)
+let retryMode = false; // الطالب يعيد الواجب بعد تقييمه "خطأ"
 
 function getLessonIdFromUrl() {
   return new URLSearchParams(window.location.search).get("id");
@@ -37,14 +39,20 @@ async function renderLesson() {
 
   let submissionSectionHtml;
 
-  if (!existingSubmission) {
+  if (!existingSubmission || retryMode) {
     submissionSectionHtml = `
       <div class="lesson-section">
-        <h2>ارفع حلّك ✍️</h2>
+        <h2>${retryMode ? "أعد حلّ الواجب 🔁" : "ارفع حلّك ✍️"}</h2>
         <div class="stack" style="gap: var(--space-5);">
           <div>
             <label>صورة الحل</label>
             <input type="file" id="solutionImageInput" accept="image/*" capture="environment">
+            <button type="button" class="btn-ghost btn--sm" id="addSecondImageBtn" style="margin-top:10px;">➕ أرسل صورة أخرى (إذا لم تكفِ صورة واحدة)</button>
+            <div id="secondImageWrap" style="display:none; margin-top:10px;">
+              <label>الصورة الثانية</label>
+              <input type="file" id="solutionImageInput2" accept="image/*" capture="environment">
+              <button type="button" class="btn-ghost btn--sm" id="removeSecondImageBtn" style="margin-top:8px;">إلغاء الصورة الثانية</button>
+            </div>
           </div>
           <div class="recorder-box">
             <label style="margin-bottom: var(--space-3);">سجّل صوتك وأنت تشرح حلّك 🎙️</label>
@@ -82,6 +90,11 @@ async function renderLesson() {
               <audio controls style="width:100%;" src="${teacherAudioUrl}"></audio>
             </div>
           ` : `<p style="margin-top: var(--space-3); color: var(--ink-soft);">لم يضف المعلم ملاحظات صوتية بعد.</p>`}
+          ${existingSubmission.status === "incorrect" ? `
+            <div style="margin-top: var(--space-4);">
+              <button type="button" class="btn-primary btn--lg" id="retryBtn">حاول مرة أخرى 🔁</button>
+            </div>
+          ` : ""}
         </div></div>
       </div>
     `;
@@ -112,7 +125,15 @@ async function renderLesson() {
     ${submissionSectionHtml}
   `;
 
-  if (!existingSubmission) wireUpSubmissionForm();
+  if (!existingSubmission || retryMode) wireUpSubmissionForm();
+
+  document.getElementById("retryBtn")?.addEventListener("click", () => {
+    retryMode = true;
+    selectedImageFile = null;
+    selectedImageFile2 = null;
+    recordedBlob = null;
+    renderLesson();
+  });
 }
 
 // ============ نموذج الرفع (تسجيل صوت + صورة) ============
@@ -124,6 +145,24 @@ function wireUpSubmissionForm() {
   imageInput.addEventListener("change", () => {
     selectedImageFile = imageInput.files[0] || null;
     updateSubmitEnabled();
+  });
+
+  const addSecondBtn = document.getElementById("addSecondImageBtn");
+  const secondWrap = document.getElementById("secondImageWrap");
+  const imageInput2 = document.getElementById("solutionImageInput2");
+
+  addSecondBtn.addEventListener("click", () => {
+    secondWrap.style.display = "block";
+    addSecondBtn.style.display = "none";
+  });
+  imageInput2.addEventListener("change", () => {
+    selectedImageFile2 = imageInput2.files[0] || null;
+  });
+  document.getElementById("removeSecondImageBtn").addEventListener("click", () => {
+    imageInput2.value = "";
+    selectedImageFile2 = null;
+    secondWrap.style.display = "none";
+    addSecondBtn.style.display = "";
   });
 
   recordBtn.addEventListener("click", async () => {
@@ -202,16 +241,44 @@ async function submitSolution() {
     const { error: audioErr } = await supabaseClient.storage.from("submission-audio").upload(audioPath, recordedBlob);
     if (audioErr) throw new Error(`تعذّر رفع التسجيل الصوتي: ${audioErr.message}`);
 
-    const { error: insertErr } = await supabaseClient.from("submissions").insert({
-      lesson_id: currentLesson.id,
-      student_id: uid,
-      solution_image_url: imagePath,
-      solution_audio_url: audioPath,
-      status: "pending",
-    });
-    if (insertErr) throw new Error(insertErr.message);
+    // الصورة الثانية (اختيارية)
+    let imagePath2 = null;
+    if (selectedImageFile2) {
+      imagePath2 = `${uid}/${Date.now()}-2-${selectedImageFile2.name.replace(/\s+/g, "_")}`;
+      const { error: img2Err } = await supabaseClient.storage.from("submission-images").upload(imagePath2, selectedImageFile2);
+      if (img2Err) throw new Error(`تعذّر رفع الصورة الثانية: ${img2Err.message}`);
+    }
 
-    existingSubmission = { status: "pending", teacher_audio_url: null };
+    if (retryMode && existingSubmission?.id) {
+      // إعادة المحاولة: نحدّث نفس السجل ونعيده لحالة "بانتظار المراجعة"
+      const { error: updErr } = await supabaseClient.from("submissions").update({
+        solution_image_url: imagePath,
+        solution_image_url_2: imagePath2,
+        solution_audio_url: audioPath,
+        status: "pending",
+        teacher_audio_url: null,
+        reviewed_by: null,
+        reviewed_at: null,
+        submitted_at: new Date().toISOString(),
+      }).eq("id", existingSubmission.id);
+      if (updErr) throw new Error(updErr.message);
+    } else {
+      const { error: insertErr } = await supabaseClient.from("submissions").insert({
+        lesson_id: currentLesson.id,
+        student_id: uid,
+        solution_image_url: imagePath,
+        solution_image_url_2: imagePath2,
+        solution_audio_url: audioPath,
+        status: "pending",
+      });
+      if (insertErr) throw new Error(insertErr.message);
+    }
+
+    existingSubmission = { id: existingSubmission?.id || null, status: "pending", teacher_audio_url: null };
+    retryMode = false;
+    selectedImageFile = null;
+    selectedImageFile2 = null;
+    recordedBlob = null;
     triggerConfetti();
     renderLesson();
   } catch (err) {
@@ -246,7 +313,7 @@ async function submitSolution() {
 
   const { data: submission } = await supabaseClient
     .from("submissions")
-    .select("status, teacher_audio_url")
+    .select("id, status, teacher_audio_url")
     .eq("lesson_id", lessonId)
     .eq("student_id", studentProfile.id)
     .maybeSingle();
