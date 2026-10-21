@@ -37,6 +37,10 @@ async function renderLesson() {
   const homeworkImageUrl = await getSignedUrl("homework-images", currentLesson.homework_image_url);
   const solutionAudioUrl = await getSignedUrl("lesson-audio", currentLesson.solution_audio_path);
 
+  // دروس البرامج الجديدة: إن لم يضع المشرف واجباً للدرس فلا يظهر للطالب أي واجب أو نموذج رفع
+  // (يبقى القسم ظاهراً إن كان للطالب حل مُرسَل سابقاً)
+  const hideSubmission = !!currentLesson.program_id && !currentLesson.homework_image_url && !existingSubmission;
+
   let submissionSectionHtml;
 
   if (!existingSubmission || retryMode) {
@@ -122,10 +126,10 @@ async function renderLesson() {
       </div>
     ` : ""}
 
-    ${submissionSectionHtml}
+    ${hideSubmission ? "" : submissionSectionHtml}
   `;
 
-  if (!existingSubmission || retryMode) wireUpSubmissionForm();
+  if ((!existingSubmission || retryMode) && !hideSubmission) wireUpSubmissionForm();
 
   document.getElementById("retryBtn")?.addEventListener("click", () => {
     retryMode = true;
@@ -301,7 +305,7 @@ async function submitSolution() {
 
   const { data: lesson, error: lessonErr } = await supabaseClient
     .from("lessons")
-    .select("id, title, video_url, homework_image_url, solution_audio_path")
+    .select("id, title, video_url, homework_image_url, solution_audio_path, program_id")
     .eq("id", lessonId)
     .single();
 

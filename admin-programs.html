@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KT18Q963RL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KT18Q963RL');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة البرامج - لوحة المشرف</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon-180.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">آفاق للقراءة والكتابة<small>لوحة المشرف</small></div>
+      <nav class="sidebar-nav">
+        <a href="admin.html">المستخدمون</a>
+        <a href="admin-lessons.html">الدروس</a>
+        <a href="admin-programs.html" class="active">البرامج</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="who" id="whoAmI">...</div>
+        <button class="btn-ghost" style="width:100%; color:#fff; border-color:rgba(255,255,255,.3);" onclick="logout()">تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <h1>البرامج التعليمية</h1>
+        <p>لكل برنامج دروسه وطلابه الذين تختارهم أنت. الدرس الذي ترفع له صورة واجب يظهر للطالب مع الواجب، وبدونها يظهر بدون واجب.</p>
+      </div>
+
+      <div id="listMsg"></div>
+
+      <div class="register">
+        <div class="register-row head" style="grid-template-columns: 1.3fr 0.5fr 0.5fr 1.6fr;">
+          <div>اسم البرنامج</div>
+          <div>الدروس</div>
+          <div>الطلاب</div>
+          <div>إجراء</div>
+        </div>
+        <div id="programsList">
+          <div class="empty-state">جارٍ التحميل...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- نافذة اختيار طلاب البرنامج -->
+  <div class="modal-overlay" id="studentsModalOverlay" hidden>
+    <div class="modal" style="max-width: 480px;">
+      <h2 id="studentsModalTitle">طلاب البرنامج</h2>
+      <div id="studentsMsg"></div>
+      <div class="field">
+        <input type="search" id="studentsSearch" placeholder="ابحث بالاسم أو البريد...">
+      </div>
+      <div id="studentsChecklist" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin-bottom: 12px;">
+        <div class="empty-state">جارٍ التحميل...</div>
+      </div>
+      <div class="meta" id="studentsSelectedCount" style="margin-bottom: 10px;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-primary" id="studentsSaveBtn">حفظ</button>
+        <button type="button" class="btn-ghost" onclick="closeStudentsModal()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/supabaseClient.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/admin-programs.js"></script>
+
+  <footer style="text-align:center; padding: 24px 16px; font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); margin-top: 20px;">
+    🛠️ تطوير:
+    <a href="mailto:amjad8835m@gmail.com" style="color:var(--color-primary-dark); font-weight:700;">أمجد</a>
+    ·
+    <a href="https://wa.me/2490112159495?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%B9%D8%AC%D8%A8%D9%86%D9%8A%20%D9%86%D8%B8%D8%A7%D9%85%20%D8%A2%D9%81%D8%A7%D9%82%20%D9%88%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%B4%D8%A7%D8%A8%D9%87" style="color:var(--color-primary-dark); font-weight:700;" target="_blank">تواصل معي لتطوير مشروع مشابه 💬</a>
+  </footer>
+</body>
+</html>

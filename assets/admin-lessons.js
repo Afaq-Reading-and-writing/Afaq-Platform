@@ -5,6 +5,9 @@
 let adminProfile = null;
 let lessonsCache = [];
 
+// عند فتح الصفحة بـ ?program=ID تُدار دروس ذلك البرنامج فقط، وبدونه تُدار دروس البرنامج الحالي كما كانت
+const programIdParam = new URLSearchParams(window.location.search).get("program");
+
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordedBlob = null;
@@ -75,10 +78,12 @@ async function loadLessons() {
   const listEl = document.getElementById("lessonsList");
   listEl.innerHTML = `<div class="empty-state">جارٍ التحميل...</div>`;
 
-  const { data, error } = await supabaseClient
+  let lessonsQuery = supabaseClient
     .from("lessons")
     .select("id, title, video_url, homework_image_url, solution_audio_path, created_at")
     .order("created_at", { ascending: false });
+  lessonsQuery = programIdParam ? lessonsQuery.eq("program_id", programIdParam) : lessonsQuery.is("program_id", null);
+  const { data, error } = await lessonsQuery;
 
   if (error) {
     listEl.innerHTML = `<div class="empty-state">تعذّر تحميل الدروس: ${error.message}</div>`;
@@ -261,6 +266,7 @@ document.getElementById("lessonForm").addEventListener("submit", async (e) => {
       const { error } = await supabaseClient.from("lessons").insert({
         title, video_url, solution_audio_path,
         homework_image_url,
+        program_id: programIdParam || null,
         created_by: adminProfile.id,
       });
       if (error) throw new Error(error.message);
@@ -361,5 +367,15 @@ document.getElementById("lessonVideoFile").addEventListener("change", (e) => {
   if (!adminProfile) return;
 
   document.getElementById("whoAmI").textContent = `مرحباً، ${adminProfile.full_name}`;
+
+  if (programIdParam) {
+    const { data: prog } = await supabaseClient.from("programs").select("name").eq("id", programIdParam).maybeSingle();
+    const h1 = document.querySelector(".page-header h1");
+    const p = document.querySelector(".page-header p");
+    if (h1) h1.textContent = `دروس: ${prog?.name || "برنامج"}`;
+    if (p) p.textContent = "أضف رابط الفيديو. ارفع صورة الواجب فقط إذا كان الدرس يحتاج واجباً؛ وإن لم ترفعها لن يظهر للطالب أي واجب لهذا الدرس.";
+    document.querySelectorAll(".sidebar-nav a").forEach(a => a.classList.toggle("active", a.getAttribute("href") === "admin-programs.html"));
+  }
+
   loadLessons();
 })();
